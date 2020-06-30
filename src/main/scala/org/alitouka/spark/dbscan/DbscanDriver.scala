@@ -75,7 +75,7 @@ object DbscanDriver {
       val clusteringResult = Dbscan.train(data, settings, partitioningSettings)
 
       //TODO change the shardkey accordingly
-      val writeConfig = WriteConfig(Map( "shardkey" -> "_id","writeConcern.w" -> "majority"), Some(WriteConfig(sc)))
+      val writeConfig = WriteConfig(Map( "shardkey" -> "{_id: \"hashed\"}","writeConcern.w" -> "majority"), Some(WriteConfig(sc)))
 
       IOHelper.saveClusteringResultInMongoDB(clusteringResult, writeConfig)
       clock.logTimeSinceStart("Clustering")

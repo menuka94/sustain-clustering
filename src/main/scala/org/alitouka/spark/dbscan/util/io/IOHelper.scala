@@ -95,7 +95,7 @@ object IOHelper {
         s" Temperature : ${pt.coordinates(2)}, " +
         s" Precipitation : ${pt.coordinates(3)}, " +
         s" Humidity : ${pt.coordinates(4)}}, " +
-        s"clusterId: { 1 : ${pt.clusterId} }}")
+        s"clusterId: { '1' : ${pt.clusterId} }}")
     } )
 
     MongoSpark.save(documents, writeConfig)

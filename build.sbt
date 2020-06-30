@@ -1,6 +1,6 @@
 import sbt.Keys.libraryDependencies
 
-name := "org.sustain-clustering"
+name := "sustain-clustering"
 
 version := "0.0.4"
 
