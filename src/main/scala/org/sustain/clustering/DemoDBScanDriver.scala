@@ -1,11 +1,9 @@
 package org.sustain.clustering
 
 import com.mongodb.spark.MongoSpark
+import org.bson.Document
 
-/**
- * Created by laksheenmendis on 6/25/20 at 4:38 PM
- */
-class DBScanDriver {
+object DemoDBScanDriver {
 
   def main(args: Array[String]): Unit = {
     /* Create the SparkSession.
@@ -23,10 +21,19 @@ class DBScanDriver {
 
     val sc = spark.sparkContext
 
-    val rdd = MongoSpark.load(sc)
+    //val df = MongoSpark.loadAndInferSchema(spark)
+    //df.printSchema()
+    //df.show()
 
-    println(rdd.count)
-    println(rdd.first.toJson)
+    val rdd = MongoSpark.load(sc)
+    val new_rdd = rdd.map(doc => doc.get("data").asInstanceOf[Document]).
+      map(d=> d.get("Latitude") + "," + d.get("Longitude") + "," + d.get("Temperature") + "," + d.get("Precipitation") + "," + d.get("Humidity"))
+    //println(rdd.count)
+    // println(new_rdd.first.toString)
+
+
+    //println(rdd.count)
+    println(new_rdd.first)
   }
 
 }
