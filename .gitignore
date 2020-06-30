@@ -142,3 +142,8 @@ Desktop.ini
 
 /.idea/
 /project/target/
+target
+target/
+.history
+.cache
+.lib/
