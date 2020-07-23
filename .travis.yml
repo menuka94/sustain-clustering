@@ -5,8 +5,18 @@ jdk: openjdk8
 scala:
   - 2.11.8
 
+env:
+  global:
+    - CC_TEST_REPORTER_ID=d4588ed46c8ae77474f698e7b7e5d557b4d4ee9c1196f7aab74269a7e7aeb15e
+
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 script:
   - sbt ++$TRAVIS_SCALA_VERSION test
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 
 before_cache:
   - rm -fv $HOME/.ivy2/.sbt.ivy.lock
