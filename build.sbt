@@ -18,8 +18,10 @@ libraryDependencies ++= Seq(
   "com.github.scopt" %% "scopt" % "3.7.0",
     // https://mvnrepository.com/artifact/org.apache.spark/spark-mllib
   "org.apache.spark" %% "spark-mllib" % "2.2.1"
-
 )
+
+libraryDependencies += "log4j" % "log4j" % "1.2.14"
+
 
 //lazy val root = (project in file(".")).dependsOn(sustainDHT).settings()
 
