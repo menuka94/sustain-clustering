@@ -24,13 +24,10 @@ object DemoDBScanDriver {
     val collection1 = "hospitals_geo"
     val collection2 = "public_schools"
 
-    log("Collections: " + "[" + collection1 + ", " + collection2 + "]")
-
-    log("FROM LOGGER")
-
     val features1 = Array("properties.population", "properties.BEDS")
     val features2 = Array("properties.ENROLLMENT", "properties.FT_TEACHER")
 
+    log("Collections: " + "[" + collection1 + ", " + collection2 + "]")
     log("Features: [" + features1 + ", " + features2 + "]")
 
     case class GeoSpatial(features: DenseVector.type)
@@ -43,9 +40,13 @@ object DemoDBScanDriver {
       .getOrCreate()
 
     val sc = spark.sparkContext
+
     log("Fetching " + collection1 + " ...")
     val rdd1 = MongoSpark.load(sc)
-    log("CLASS: " + rdd1.getClass)
+    val df1 = MongoSpark.load(spark)
+
+    log("rdd1.getClass: " + rdd1.getClass)
+    log("df1.getClass: " + df1.getClass)
 
     log("Fetching " + collection2 + " ...")
 
