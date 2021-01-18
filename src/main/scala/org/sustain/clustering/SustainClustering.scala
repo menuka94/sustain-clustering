@@ -6,7 +6,7 @@ import org.apache.spark.mllib.linalg.DenseVector
 import java.io._
 import java.time.LocalDateTime
 
-object DemoDBScanDriver {
+object SustainClustering {
   val logFile: String = System.getenv("HOME") + "/sustain-clustering.log"
   val pw: PrintWriter = new PrintWriter(new FileWriter(new File(logFile), true))
 
