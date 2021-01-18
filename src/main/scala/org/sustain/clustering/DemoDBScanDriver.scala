@@ -54,8 +54,10 @@ object DemoDBScanDriver {
 
     val readConfig = ReadConfig(Map("collection" -> collection2, "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc)))
     val rdd2 = MongoSpark.load(sc, readConfig)
-    println(rdd2.count)
-    println(rdd2.first.toJson)
+    val df2 = MongoSpark.load(spark, readConfig)
+
+    log("rdd2.getClass: " + rdd2.getClass)
+    log("df2.getClass: " + df2.getClass)
     pw.close()
   }
 
