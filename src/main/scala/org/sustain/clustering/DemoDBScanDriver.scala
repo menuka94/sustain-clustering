@@ -3,11 +3,16 @@ package org.sustain.clustering
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.mllib.linalg.DenseVector
 
+import java.io._
 import java.time.LocalDateTime
 
 object DemoDBScanDriver {
+  val logFile: String = System.getenv("HOME") + "/sustain-clustering.log"
+  val pw: PrintWriter = new PrintWriter(new FileWriter(new File(logFile), true))
 
   def main(args: Array[String]): Unit = {
+    // add new line to log file to indicate new invocation of the method
+    pw.write("-------------------------------------------------------------------------\n")
     /* Create the SparkSession.
          * If config arguments are passed from the command line using --conf,
          * parse args for the values to set.
@@ -50,9 +55,13 @@ object DemoDBScanDriver {
     val rdd2 = MongoSpark.load(sc, readConfig)
     println(rdd2.count)
     println(rdd2.first.toJson)
+    pw.close()
   }
 
   def log(message: String) {
-    println(LocalDateTime.now() + ": " + message)
+    val log = LocalDateTime.now() + ": " + message
+    println(log)
+    pw.write(log + "\n")
+    pw.flush()
   }
 }
