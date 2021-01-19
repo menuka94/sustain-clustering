@@ -3,11 +3,12 @@ package org.sustain.clustering
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.ml.clustering.KMeans
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.mllib.linalg.{DenseVector, Vectors}
-import org.bson.Document
+import org.apache.spark.mllib.linalg.DenseVector
+import org.apache.spark.sql.DataFrame
 
 import java.io._
 import java.time.LocalDateTime
+
 
 object SustainClustering {
   val logFile: String = System.getenv("HOME") + "/sustain-clustering.log"
@@ -34,7 +35,7 @@ object SustainClustering {
     log("Collections: " + "[" + collection1 + ", " + collection2 + "]")
     log("Features: [" + features1 + ", " + features2 + "]")
 
-//    case class GeoSpatial(features: DenseVector.type)
+    //    case class GeoSpatial(features: DenseVector.type)
     case class Collection1(features: DenseVector.type)
 
     val spark = SparkSession.builder()
@@ -45,37 +46,28 @@ object SustainClustering {
 
     val sc = spark.sparkContext
 
+    import spark.implicits._
     log("Fetching " + collection1 + " ...")
-    val rdd1 = MongoSpark.load(sc)
-    val new_rdd1 = rdd1.map(doc => doc.get("properties").asInstanceOf[Document])
-      .map(d => {
-        val arr = Array(
-          toDouble(d.get("POPULATION").toString),
-          toDouble(d.get("BEDS").toString)
-        )
-        Vectors.dense(arr)
-      })
 
-//    new_rdd1.take(5).foreach(i => log(i.toString))
-
-    val df1 = spark.createDataFrame(new_rdd1, Collection1.getClass)
+    var df1: DataFrame = MongoSpark.load(spark)
+    df1 = df1.select($"_id", $"properties"("POPULATION"), $"properties"("BEDS"))
+      .withColumnRenamed("properties.BEDS", "BEDS")
+      .withColumnRenamed("properties.POPULATION", "POPULATION")
 
     df1.printSchema()
-    df1.take(2).foreach(i => log(i.toString()))
-    df1.show()
-
+    df1.show(10)
 
     // K-Means
-//    /*
-        val assembler = new VectorAssembler().setOutputCol("features")
-        val featureDf = assembler.transform(df1)
+    //    /*
+    val assembler = new VectorAssembler().setInputCols(Array("POPULATION", "BEDS")).setOutputCol("features")
+    val featureDf = assembler.transform(df1)
 
-        val kmeans = new KMeans().setK(2).setSeed(1L)
-        val model = kmeans.fit(featureDf)
+    val kmeans = new KMeans().setK(2).setSeed(1L)
+    val model = kmeans.fit(featureDf)
 
-        log("Cluster centers ...")
-        model.clusterCenters.foreach(println)
-//    */
+    log("Cluster centers ...")
+    model.clusterCenters.foreach(println)
+    //    */
 
     //    log("Fetching " + collection2 + " ...")
     //
