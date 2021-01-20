@@ -58,7 +58,7 @@ object SustainClustering {
     df1.show(10)
 
     // K-Means
-    //    /*
+        /*
     val assembler = new VectorAssembler().setInputCols(Array("POPULATION", "BEDS")).setOutputCol("features")
     val featureDf = assembler.transform(df1)
 
@@ -67,20 +67,35 @@ object SustainClustering {
 
     log("Cluster centers ...")
     model.clusterCenters.foreach(println)
-    //    */
+        */
 
-    //    log("Fetching " + collection2 + " ...")
-    //
-    //    import com.mongodb.spark.config._
-    //
-    //    val readConfig = ReadConfig(Map("collection" -> collection2, "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc)))
-    //    val rdd2 = MongoSpark.load(sc, readConfig)
-    //    val df2 = MongoSpark.load(spark, readConfig)
-    //
-    //    log("df2.getClass: " + df2.getClass)
-    //    df2.printSchema()
-    //    pw.close()
+    log("Fetching " + collection2 + " ...")
 
+    import com.mongodb.spark.config._
+
+    var dfTotalPopulation = MongoSpark.load(spark,
+      ReadConfig(Map("collection" -> "tract_total_population", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
+
+    dfTotalPopulation = dfTotalPopulation.select($"GISJOIN", $"2010_total_population")
+      .withColumnRenamed("2010_total_population", "population")
+    log(dfTotalPopulation.schema.toString())
+    dfTotalPopulation.take(5).foreach(i => log(i.toString()))
+
+    var dfMedianIncome = MongoSpark.load(spark,
+      ReadConfig(Map("collection" -> "tract_median_household_income", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
+
+    dfMedianIncome = dfMedianIncome.select($"GISJOIN", $"2010_median_household_income")
+      .withColumnRenamed("2010_median_household_income", "median_income")
+    log(dfMedianIncome.schema.toString())
+    dfMedianIncome.take(5).foreach(i => log(i.toString()))
+
+    var dfSvi = MongoSpark.load(spark,
+      ReadConfig(Map("collection" -> "svi_tract_GISJOIN", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
+
+    dfSvi = dfSvi.select($"GISJOIN", $"RPL_THEMES")
+      .withColumnRenamed("RPL_THEMES", "svi")
+    log(dfSvi.schema.toString())
+    dfSvi.take(5).foreach(i => log(i.toString()))
 
   }
 
