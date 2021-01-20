@@ -1,8 +1,6 @@
 package org.sustain.clustering
 
 import com.mongodb.spark.MongoSpark
-import org.apache.spark.ml.clustering.KMeans
-import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.mllib.linalg.DenseVector
 import org.apache.spark.sql.DataFrame
 
@@ -58,16 +56,16 @@ object SustainClustering {
     df1.show(10)
 
     // K-Means
-        /*
-    val assembler = new VectorAssembler().setInputCols(Array("POPULATION", "BEDS")).setOutputCol("features")
-    val featureDf = assembler.transform(df1)
+    /*
+val assembler = new VectorAssembler().setInputCols(Array("POPULATION", "BEDS")).setOutputCol("features")
+val featureDf = assembler.transform(df1)
 
-    val kmeans = new KMeans().setK(2).setSeed(1L)
-    val model = kmeans.fit(featureDf)
+val kmeans = new KMeans().setK(2).setSeed(1L)
+val model = kmeans.fit(featureDf)
 
-    log("Cluster centers ...")
-    model.clusterCenters.foreach(println)
-        */
+log("Cluster centers ...")
+model.clusterCenters.foreach(println)
+    */
 
     log("Fetching " + collection2 + " ...")
 
@@ -78,25 +76,31 @@ object SustainClustering {
 
     dfTotalPopulation = dfTotalPopulation.select($"GISJOIN", $"2010_total_population")
       .withColumnRenamed("2010_total_population", "population")
-    log(dfTotalPopulation.schema.toString())
-    dfTotalPopulation.take(5).foreach(i => log(i.toString()))
+      .as("total_population")
+    //    dfTotalPopulation.take(5).foreach(i => log(i.toString()))
 
     var dfMedianIncome = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "tract_median_household_income", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
     dfMedianIncome = dfMedianIncome.select($"GISJOIN", $"2010_median_household_income")
       .withColumnRenamed("2010_median_household_income", "median_income")
+      .as("median_income")
     log(dfMedianIncome.schema.toString())
-    dfMedianIncome.take(5).foreach(i => log(i.toString()))
+    //    dfMedianIncome.take(5).foreach(i => log(i.toString()))
 
     var dfSvi = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "svi_tract_GISJOIN", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
+      .as("svi")
 
     dfSvi = dfSvi.select($"GISJOIN", $"RPL_THEMES")
       .withColumnRenamed("RPL_THEMES", "svi")
     log(dfSvi.schema.toString())
-    dfSvi.take(5).foreach(i => log(i.toString()))
+    //    dfSvi.take(5).foreach(i => log(i.toString()))
 
+    // join dataframes on GISJOIN
+    val dfJoin1 = dfTotalPopulation.join(dfMedianIncome, $"total_population.GISJOIN == median_income.GISJOIN")
+      .select($"total_population.population" as "population", $"median_income.median_income" as "median_income")
+    dfJoin1.take(5).foreach(i => log(i.toString()))
   }
 
   def log(message: String) {
