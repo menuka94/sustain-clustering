@@ -52,8 +52,8 @@ object SustainClustering {
       .withColumnRenamed("properties.BEDS", "BEDS")
       .withColumnRenamed("properties.POPULATION", "POPULATION")
 
-    df1.printSchema()
-    df1.show(10)
+//    df1.printSchema()
+//    df1.show(10)
 
     // K-Means
     /*
@@ -74,10 +74,13 @@ model.clusterCenters.foreach(println)
     var dfTotalPopulation = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "tract_total_population", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
+
     dfTotalPopulation = dfTotalPopulation.select($"GISJOIN", $"2010_total_population")
       .withColumnRenamed("2010_total_population", "population")
-      .as("total_population")
+      .as("total_population").na.drop()
     //    dfTotalPopulation.take(5).foreach(i => log(i.toString()))
+
+    dfTotalPopulation.show(10)
 
     var dfMedianIncome = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "tract_median_household_income", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
@@ -98,9 +101,9 @@ model.clusterCenters.foreach(println)
     //    dfSvi.take(5).foreach(i => log(i.toString()))
 
     // join dataframes on GISJOIN
-    val dfJoin1 = dfTotalPopulation.join(dfMedianIncome, $"total_population.GISJOIN == median_income.GISJOIN")
-      .select($"total_population.population" as "population", $"median_income.median_income" as "median_income")
-    dfJoin1.take(5).foreach(i => log(i.toString()))
+    //    val dfJoin1 = dfTotalPopulation.join(dfMedianIncome, $"total_population.GISJOIN == median_income.GISJOIN")
+    //      .select($"total_population.population" as "population", $"median_income.median_income" as "median_income")
+    //    dfJoin1.take(5).foreach(i => log(i.toString()))
   }
 
   def log(message: String) {
@@ -108,10 +111,5 @@ model.clusterCenters.foreach(println)
     println(log)
     pw.write(log + "\n")
     pw.flush()
-  }
-
-  // function to convert year and incident_code columns to int
-  def toDouble(value: String): Double = {
-    value.toDouble
   }
 }
