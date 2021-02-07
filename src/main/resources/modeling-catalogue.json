@@ -1,0 +1,93 @@
+{
+  "resolution": [
+    "counties",
+    "tracts"
+  ],
+  "operation": "clustering",
+  "algorithm": {
+    "k-means": {
+      "parameters": {
+        "No. of clusters (k)": {
+          "type": "integer",
+          "max": 20,
+          "min": 2,
+          "default": 10
+        },
+        "Max. Iterations": {
+          "type": "integer",
+          "default": "1000"
+        }
+      }
+    },
+    "k-means++": {
+      "parameters": {
+        "No. of clusters (k)": {
+          "type": "integer",
+          "max": 20,
+          "min": 2,
+          "default": 10
+        },
+        "Max. Iterations": {
+          "type": "integer",
+          "default": 100,
+          "min": 1
+        },
+        "Initialization Steps": {
+          "type": "integer",
+          "default": 2,
+          "min": 1
+        }
+      }
+    },
+    "Gaussian mixture": {
+      "No. of clusters (k)": {
+        "type": "integer",
+        "max": 20,
+        "min": 2,
+        "default": 10
+      },
+      "Max. Iterations": {
+        "type": "integer"
+      }
+    },
+    "Power iteration clustering (PIC)": {
+      "No. of clusters (k)": {
+        "type": "integer",
+        "max": 20,
+        "min": 2,
+        "default": 10
+      },
+      "Max. Iterations": {
+        "type": "integer",
+        "default": "1000"
+      }
+    },
+    "Latent Dirichlet allocation (LDA)": {
+      "No. of topics (k)": {
+        "type": "integer",
+        "max": 20,
+        "min": 2,
+        "default": 10
+      },
+      "optimizer": [
+        "EMLDAOptimizer",
+        "OnlineLDAOptimizer"
+      ],
+      "Doc. Concentration": {
+        "type": "integer"
+      },
+      "Max. Iterations": {
+        "type": "integer"
+      }
+    }
+  },
+  "features": [
+    "total_population",
+    "median_household_income",
+    "median_age",
+    "svi",
+    "no. of hospitals",
+    "no. of fire stations",
+    "no. of electrical substations"
+  ]
+}

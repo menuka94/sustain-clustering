@@ -52,8 +52,8 @@ object SustainClustering {
       .withColumnRenamed("properties.BEDS", "BEDS")
       .withColumnRenamed("properties.POPULATION", "POPULATION")
 
-//    df1.printSchema()
-//    df1.show(10)
+    //    df1.printSchema()
+    //    df1.show(10)
 
     // K-Means
     /*
@@ -87,8 +87,8 @@ model.clusterCenters.foreach(println)
 
     dfMedianIncome = dfMedianIncome.select($"GISJOIN", $"2010_median_household_income")
       .withColumnRenamed("2010_median_household_income", "median_income")
-      .as("median_income")
-    log(dfMedianIncome.schema.toString())
+      .as("median_income").na.drop()
+    //    log(dfMedianIncome.schema.toString())
     //    dfMedianIncome.take(5).foreach(i => log(i.toString()))
 
     var dfSvi = MongoSpark.load(spark,
@@ -96,7 +96,7 @@ model.clusterCenters.foreach(println)
       .as("svi")
 
     dfSvi = dfSvi.select($"GISJOIN", $"RPL_THEMES")
-      .withColumnRenamed("RPL_THEMES", "svi")
+      .withColumnRenamed("RPL_THEMES", "svi").na.drop()
     log(dfSvi.schema.toString())
     //    dfSvi.take(5).foreach(i => log(i.toString()))
 
