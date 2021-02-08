@@ -48,7 +48,6 @@ object SustainClustering {
     county_stats.take(5).foreach(i => log(i.toString()))
 
     // K-Means
-//        /*
     val assembler = new VectorAssembler().setInputCols(Array("total_population", "median_household_income")).setOutputCol("features")
     val featureDf = assembler.transform(county_stats)
 
@@ -56,8 +55,11 @@ object SustainClustering {
     val model = kmeans.fit(featureDf)
 
     log("Cluster centers ...")
-    model.clusterCenters.foreach(println)
-//        */
+    model.clusterCenters.foreach(x => log(x.toString))
+
+    val predictDf = model.transform(featureDf)
+    predictDf.show(10)
+
   }
 
   def log(message: String) {
