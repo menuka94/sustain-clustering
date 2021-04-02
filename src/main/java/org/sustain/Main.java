@@ -1,2 +1,7 @@
-package org.sustain;public class Main {
+package org.sustain;
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println("Hello World!");
+    }
 }

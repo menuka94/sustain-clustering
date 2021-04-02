@@ -2,7 +2,8 @@ package org.sustain.clustering
 
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.ml.clustering.KMeans
-import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.ml.feature.{Normalizer, VectorAssembler}
+import org.apache.spark.ml.linalg.Vectors
 
 import java.io._
 import java.time.LocalDateTime
@@ -23,11 +24,7 @@ object SustainClustering {
     println("Starting ...")
 
     // TODO: populate the following with user inputs
-    val collection1 = "county_stats"
-
-    //    val features1 = Array("properties.POPULATION", "properties.BEDS")
-    val features1 = Array("total_population", "median_household_income")
-
+    val collection1 = "svi_county_GISJOIN"
 
     val spark = SparkSession.builder()
       .master("spark://menuka-HP:7077")
@@ -40,12 +37,16 @@ object SustainClustering {
     import com.mongodb.spark.config._
     import spark.implicits._
 
+    // fetch data
     var county_stats = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "county_stats", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
     county_stats = county_stats.select($"GISJOIN", $"total_population".cast("double"), $"median_household_income");
     county_stats.printSchema()
     county_stats.take(5).foreach(i => log(i.toString()))
+
+    // normalize data columns
+    val normalizer = new Normalizer()
 
     // K-Means
     val assembler = new VectorAssembler().setInputCols(Array("total_population", "median_household_income")).setOutputCol("features")
