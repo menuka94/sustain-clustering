@@ -1,9 +1,7 @@
 package org.sustain.clustering
 
 import com.mongodb.spark.MongoSpark
-import org.apache.spark.ml.clustering.KMeans
-import org.apache.spark.ml.feature.{Normalizer, VectorAssembler}
-import org.apache.spark.ml.linalg.Vectors
+import org.apache.spark.ml.feature.{Normalizer, StandardScaler, VectorAssembler}
 
 import java.io._
 import java.time.LocalDateTime
@@ -35,31 +33,73 @@ object SustainClustering {
     val sc = spark.sparkContext
 
     import com.mongodb.spark.config._
-    import spark.implicits._
 
     // fetch data
     var county_stats = MongoSpark.load(spark,
-      ReadConfig(Map("collection" -> "county_stats", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
+      ReadConfig(Map("collection" -> "svi_county_GISJOIN", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
-    county_stats = county_stats.select($"GISJOIN", $"total_population".cast("double"), $"median_household_income");
+    var features = Array(
+      "E_HU",
+      "M_HU",
+      "E_HH",
+      "M_HH",
+      "E_POV",
+      "M_POV",
+      "E_UNEMP",
+      "M_UNEMP",
+      "E_PCI",
+      "M_PCI",
+      "E_NOHSDP",
+      "M_NOHSDP",
+      "E_AGE65",
+      "M_AGE65",
+      "E_AGE17",
+      "M_AGE17",
+      "E_DISABL",
+      "M_DISABL",
+      "E_SNGPNT",
+      "M_SNGPNT",
+      "E_MINRTY",
+      "M_MINRTY",
+      "E_LIMENG",
+      "M_LIMENG",
+      "E_MUNIT",
+      "M_MUNIT",
+      "E_MOBILE",
+      "M_MOBILE",
+      "E_CROWD",
+      "M_CROWD",
+      "E_NOVEH",
+      "M_NOVEH",
+      "E_GROUPQ",
+      "M_GROUPQ"
+    )
+
+
+    county_stats = county_stats.select(features.head, features.tail: _*);
     county_stats.printSchema()
     county_stats.take(5).foreach(i => log(i.toString()))
 
     // normalize data columns
-    val normalizer = new Normalizer()
+    val normalizer = new Normalizer().setInputCol("features")
 
-    // K-Means
-    val assembler = new VectorAssembler().setInputCols(Array("total_population", "median_household_income")).setOutputCol("features")
+    val assembler = new VectorAssembler().setInputCols(features.patch(0, Nil, 1)).setOutputCol("features")
     val featureDf = assembler.transform(county_stats)
+    featureDf.show(10)
 
-    val kmeans = new KMeans().setK(10).setSeed(1L)
-    val model = kmeans.fit(featureDf)
+    // scaling
+    log("Scaling features ...")
+    var scaler = new StandardScaler()
+      .setInputCol("features")
+      .setOutputCol("scaled_features")
+      .setWithMean(true)
+      .setWithMean(false)
 
-    log("Cluster centers ...")
-    model.clusterCenters.foreach(x => log(x.toString))
+    val scalerModel = scaler.fit(featureDf)
 
-    val predictDf = model.transform(featureDf)
-    predictDf.show(10)
+    val scaledDF = scalerModel.transform(featureDf)
+    log("Scaled DataFrame")
+    scaledDF.show(10)
 
   }
 
