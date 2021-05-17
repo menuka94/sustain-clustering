@@ -15,14 +15,14 @@ object SustainClustering {
 
   def logEnv(): Unit = {
     log(">>> Log Environment")
-    log("SERVER_HOST: " + Constants.SERVER_HOST)
-    log("SERVER_PORT: " + Constants.SERVER_PORT)
+    log("SPARK_MASTER: " + Constants.SPARK_MASTER)
     log("DB_HOST: " + Constants.DB_HOST)
     log("DB_PORT: " + Constants.DB_PORT)
   }
 
   def main(args: Array[String]): Unit = {
     logEnv()
+    System.setProperty("mongodb.keep_alive_ms", "100000")
     // add new line to log file to indicate new invocation of the method
     pw.write("-------------------------------------------------------------------------\n")
     /* Create the SparkSession.
@@ -32,8 +32,7 @@ object SustainClustering {
     import org.apache.spark.sql.SparkSession
     println("Starting ...")
 
-    // TODO: populate the following with user inputs
-    val collection1 = "svi_county_GISJOIN"
+    val collection1 = "noaa_nam"
 
     val spark = SparkSession.builder()
       .master(Constants.SPARK_MASTER)
@@ -48,11 +47,12 @@ object SustainClustering {
 
     // fetch data
     var featureDF = MongoSpark.load(spark,
-      ReadConfig(Map("collection" -> "svi_county_GISJOIN", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
+      ReadConfig(Map("collection" -> collection1, "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
-    var features = Features.sviFeatures
+    featureDF = featureDF.sample(0.5)
+    var features = Features.noaaFeatures
 
-    val featuresWithGisJoin: ArrayBuffer[String]= ArrayBuffer(features: _*)
+    val featuresWithGisJoin: ArrayBuffer[String] = ArrayBuffer(features: _*)
     featuresWithGisJoin += Constants.GIS_JOIN
     featureDF = featureDF.select(featuresWithGisJoin.head, featuresWithGisJoin.tail: _*);
     featureDF.printSchema()
@@ -83,7 +83,7 @@ object SustainClustering {
     val pca: PCAModel = new PCA()
       .setInputCol("features")
       .setOutputCol("pcaFeatures")
-      .setK(features.length)
+      .setK(13)
       .fit(scaledDF)
 
     val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, .95)
@@ -108,6 +108,10 @@ object SustainClustering {
       avg("pcaFeatures_6").as("avg_pc_6"),
       avg("pcaFeatures_7").as("avg_pc_7"),
       avg("pcaFeatures_8").as("avg_pc_8"),
+      avg("pcaFeatures_9").as("avg_pc_9"),
+      avg("pcaFeatures_10").as("avg_pc_10"),
+      avg("pcaFeatures_11").as("avg_pc_11"),
+      avg("pcaFeatures_12").as("avg_pc_12"),
     ).
       select(Constants.GIS_JOIN,
         "avg_pc_0",
@@ -118,14 +122,21 @@ object SustainClustering {
         "avg_pc_5",
         "avg_pc_6",
         "avg_pc_7",
-        "avg_pc_8"
+        "avg_pc_8",
+        "avg_pc_9",
+        "avg_pc_10",
+        "avg_pc_11",
+        "avg_pc_12"
       )
 
+    val count = pcaDF.count()
+    log(s"pcaDF: count = $count")
 
     // KMeans Clustering
     KMeansClustering.runClustering(spark,
       pcaDF,
       Array(
+        "avg_pc_0",
         "avg_pc_1",
         "avg_pc_2",
         "avg_pc_3",
@@ -133,9 +144,61 @@ object SustainClustering {
         "avg_pc_5",
         "avg_pc_6",
         "avg_pc_7",
-        "avg_pc_8"
+        "avg_pc_8",
+        "avg_pc_9",
+        "avg_pc_10",
+        "avg_pc_11",
+        "avg_pc_12"
       ),
       56,
+      13,
+      collection1
+    )
+
+    // BisectingKMeans Clustering
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF,
+      Array(
+        "avg_pc_0",
+        "avg_pc_1",
+        "avg_pc_2",
+        "avg_pc_3",
+        "avg_pc_4",
+        "avg_pc_5",
+        "avg_pc_6",
+        "avg_pc_7",
+        "avg_pc_8",
+        "avg_pc_9",
+        "avg_pc_10",
+        "avg_pc_11",
+        "avg_pc_12"
+      ),
+      56,
+      13,
+      collection1
+    )
+
+
+    // GaussianMixture Clustering
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF,
+      Array(
+        "avg_pc_0",
+        "avg_pc_1",
+        "avg_pc_2",
+        "avg_pc_3",
+        "avg_pc_4",
+        "avg_pc_5",
+        "avg_pc_6",
+        "avg_pc_7",
+        "avg_pc_8",
+        "avg_pc_9",
+        "avg_pc_10",
+        "avg_pc_11",
+        "avg_pc_12"
+      ),
+      56,
+      13,
       collection1
     )
   }

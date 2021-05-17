@@ -1,8 +1,6 @@
 package org.sustain.clustering
 
 object Constants {
-  val SERVER_HOST: String = sys.env("SERVER_HOST")
-  val SERVER_PORT: Int = sys.env("SERVER_PORT").toInt
   val DB_HOST: String = sys.env("DB_HOST")
   val DB_PORT: Int = sys.env("DB_PORT").toInt
   val SPARK_MASTER: String = sys.env("SPARK_MASTER")
@@ -14,5 +12,5 @@ object Constants {
   val SPARK_BACKLOG_TIMEOUT: String = sys.env("SPARK_BACKLOG_TIMEOUT")
   val SPARK_IDLE_TIMEOUT: String = sys.env("SPARK_IDLE_TIMEOUT")
 
-  val GIS_JOIN = "GISJOIN"
+  val GIS_JOIN = "gis_join"
 }
