@@ -2,6 +2,7 @@ package org.sustain.clustering
 
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.ml.feature.{Normalizer, StandardScaler, VectorAssembler}
+import org.apache.spark.mllib.linalg.distributed.RowMatrix
 
 import java.io._
 import java.time.LocalDateTime
@@ -11,7 +12,16 @@ object SustainClustering {
   val logFile: String = System.getenv("HOME") + "/sustain-clustering.log"
   val pw: PrintWriter = new PrintWriter(new FileWriter(new File(logFile), true))
 
+  def logEnv(): Unit = {
+    println(">>> Log Environment")
+    println("SERVER_HOST: " + Constants.SERVER_HOST)
+    println("SERVER_PORT: " + Constants.SERVER_PORT)
+    println("DB_HOST: " + Constants.DB_HOST)
+    println("DB_PORT: " + Constants.DB_PORT)
+  }
+
   def main(args: Array[String]): Unit = {
+    logEnv()
     // add new line to log file to indicate new invocation of the method
     pw.write("-------------------------------------------------------------------------\n")
     /* Create the SparkSession.
@@ -25,9 +35,10 @@ object SustainClustering {
     val collection1 = "svi_county_GISJOIN"
 
     val spark = SparkSession.builder()
-      .master("spark://menuka-HP:7077")
+      .master(Constants.SPARK_MASTER)
       .appName("SparkClustering")
-      .config("spark.mongodb.input.uri", "mongodb://localhost:27017/sustaindb." + collection1)
+      .config("spark.mongodb.input.uri",
+        "mongodb://" + Constants.DB_HOST + ":" + Constants.DB_PORT + "/sustaindb." + collection1)
       .getOrCreate()
 
     val sc = spark.sparkContext
@@ -100,7 +111,6 @@ object SustainClustering {
     val scaledDF = scalerModel.transform(featureDf)
     log("Scaled DataFrame")
     scaledDF.show(10)
-
   }
 
   def log(message: String) {

@@ -133,4 +133,5 @@ project/plugins/project/
 
 ### Scala ###
 
-# End of https://www.toptal.com/developers/gitignore/api/scala,java,sbt,intellij+all
+# End of https://www.toptal.com/developers/gitignore/api/scala,java,sbt,intellij+all.
+env.sh
