@@ -13,4 +13,6 @@ object Constants {
   val SPARK_EXECUTOR_MEMORY: String = sys.env("SPARK_EXECUTOR_MEMORY")
   val SPARK_BACKLOG_TIMEOUT: String = sys.env("SPARK_BACKLOG_TIMEOUT")
   val SPARK_IDLE_TIMEOUT: String = sys.env("SPARK_IDLE_TIMEOUT")
+
+  val GIS_JOIN = "GISJOIN"
 }

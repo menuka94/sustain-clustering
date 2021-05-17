@@ -1,0 +1,62 @@
+package org.sustain.clustering
+
+object Features {
+  val sviFeatures: Array[String] = Array(
+    "E_HU",
+    "M_HU",
+    "E_HH",
+    "M_HH",
+    "E_POV",
+    "M_POV",
+    "E_UNEMP",
+    "M_UNEMP",
+    "E_PCI",
+    "M_PCI",
+    "E_NOHSDP",
+    "M_NOHSDP",
+    "E_AGE65",
+    "M_AGE65",
+    "E_AGE17",
+    "M_AGE17",
+    "E_DISABL",
+    "M_DISABL",
+    "E_SNGPNT",
+    "M_SNGPNT",
+    "E_MINRTY",
+    "M_MINRTY",
+    "E_LIMENG",
+    "M_LIMENG",
+    "E_MUNIT",
+    "M_MUNIT",
+    "E_MOBILE",
+    "M_MOBILE",
+    "E_CROWD",
+    "M_CROWD",
+    "E_NOVEH",
+    "M_NOVEH",
+    "E_GROUPQ",
+    "M_GROUPQ"
+  )
+
+  val noaaFeatures: Array[String] = Array(
+    "year_month_day_hour",
+    "mean_sea_level_pressure_pascal",
+    "surface_pressure_surface_level_pascal",
+    "orography_surface_level_meters",
+    "temp_surface_level_kelvin",
+    "2_metre_temp_kelvin",
+    "2_metre_dewpoint_temp_kelvin",
+    "relative_humidity_percent",
+    "10_metre_u_wind_component_meters_per_second",
+    "10_metre_v_wind_component_meters_per_second",
+    "total_precipitation_kg_per_squared_meter",
+    "water_convection_precipitation_kg_per_squared_meter",
+    "soil_temperature_kelvin",
+    "pressure_pascal",
+    "visibility_meters",
+    "precipitable_water_kg_per_squared_meter",
+    "total_cloud_cover_percent",
+    "snow_depth_meters",
+    "ice_cover_binary"
+  )
+}

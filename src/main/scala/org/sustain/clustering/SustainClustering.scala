@@ -2,6 +2,7 @@ package org.sustain.clustering
 
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.ml.feature._
+import org.apache.spark.sql.functions.{avg, col}
 import org.apache.spark.sql.{Dataset, Row}
 
 import java.io._
@@ -49,45 +50,10 @@ object SustainClustering {
     var featureDF = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "svi_county_GISJOIN", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
-    var features = Array[String](
-      "E_HU",
-      "M_HU",
-      "E_HH",
-      "M_HH",
-      "E_POV",
-      "M_POV",
-      "E_UNEMP",
-      "M_UNEMP",
-      "E_PCI",
-      "M_PCI",
-      "E_NOHSDP",
-      "M_NOHSDP",
-      "E_AGE65",
-      "M_AGE65",
-      "E_AGE17",
-      "M_AGE17",
-      "E_DISABL",
-      "M_DISABL",
-      "E_SNGPNT",
-      "M_SNGPNT",
-      "E_MINRTY",
-      "M_MINRTY",
-      "E_LIMENG",
-      "M_LIMENG",
-      "E_MUNIT",
-      "M_MUNIT",
-      "E_MOBILE",
-      "M_MOBILE",
-      "E_CROWD",
-      "M_CROWD",
-      "E_NOVEH",
-      "M_NOVEH",
-      "E_GROUPQ",
-      "M_GROUPQ"
-    )
+    var features = Features.sviFeatures
 
     val featuresWithGisJoin: ArrayBuffer[String]= ArrayBuffer(features: _*)
-    featuresWithGisJoin += "GISJOIN"
+    featuresWithGisJoin += Constants.GIS_JOIN
     featureDF = featureDF.select(featuresWithGisJoin.head, featuresWithGisJoin.tail: _*);
     featureDF.printSchema()
     featureDF.take(5).foreach(i => log(i.toString()))
@@ -123,7 +89,7 @@ object SustainClustering {
     val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, .95)
     log("Collection " + collection1 + ", Required no. of PCs for 95% variability: " + requiredNoOfPCs)
 
-    var pcaDF: Dataset[Row] = pca.transform(scaledDF).select("GISJOIN", "features", "pcaFeatures")
+    var pcaDF: Dataset[Row] = pca.transform(scaledDF).select(Constants.GIS_JOIN, "features", "pcaFeatures")
     pcaDF.show(20)
 
     val disassembler = new VectorDisassembler().setInputCol("pcaFeatures")
@@ -131,8 +97,47 @@ object SustainClustering {
 
     pcaDF.show(20)
 
+    // average principal components
+    pcaDF = pcaDF.groupBy(col(Constants.GIS_JOIN)).agg(
+      avg("pcaFeatures_0").as("avg_pc_0"),
+      avg("pcaFeatures_1").as("avg_pc_1"),
+      avg("pcaFeatures_2").as("avg_pc_2"),
+      avg("pcaFeatures_3").as("avg_pc_3"),
+      avg("pcaFeatures_4").as("avg_pc_4"),
+      avg("pcaFeatures_5").as("avg_pc_5"),
+      avg("pcaFeatures_6").as("avg_pc_6"),
+      avg("pcaFeatures_7").as("avg_pc_7"),
+      avg("pcaFeatures_8").as("avg_pc_8"),
+    ).
+      select(Constants.GIS_JOIN,
+        "avg_pc_0",
+        "avg_pc_1",
+        "avg_pc_2",
+        "avg_pc_3",
+        "avg_pc_4",
+        "avg_pc_5",
+        "avg_pc_6",
+        "avg_pc_7",
+        "avg_pc_8"
+      )
+
 
     // KMeans Clustering
+    KMeansClustering.runClustering(spark,
+      pcaDF,
+      Array(
+        "avg_pc_1",
+        "avg_pc_2",
+        "avg_pc_3",
+        "avg_pc_4",
+        "avg_pc_5",
+        "avg_pc_6",
+        "avg_pc_7",
+        "avg_pc_8"
+      ),
+      56,
+      collection1
+    )
   }
 
   def log(message: String) {
