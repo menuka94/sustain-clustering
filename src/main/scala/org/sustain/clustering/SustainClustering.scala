@@ -6,6 +6,7 @@ import org.apache.spark.sql.{Dataset, Row}
 
 import java.io._
 import java.time.LocalDateTime
+import scala.collection.mutable.ArrayBuffer
 
 object SustainClustering {
   val logFile: String = System.getenv("HOME") + "/sustain-clustering.log"
@@ -48,8 +49,7 @@ object SustainClustering {
     var featureDF = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "svi_county_GISJOIN", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
-    var features = Array(
-      "GISJOIN",
+    var features = Array[String](
       "E_HU",
       "M_HU",
       "E_HH",
@@ -86,28 +86,30 @@ object SustainClustering {
       "M_GROUPQ"
     )
 
-    featureDF = featureDF.select(features.head, features.tail: _*);
+    val featuresWithGisJoin: ArrayBuffer[String]= ArrayBuffer(features: _*)
+    featuresWithGisJoin += "GISJOIN"
+    featureDF = featureDF.select(featuresWithGisJoin.head, featuresWithGisJoin.tail: _*);
     featureDF.printSchema()
     featureDF.take(5).foreach(i => log(i.toString()))
 
     // normalize data columns
     val normalizer = new Normalizer().setInputCol("features")
 
-    val assembler = new VectorAssembler().setInputCols(features.patch(0, Nil, 1)).setOutputCol("features")
+    val assembler = new VectorAssembler().setInputCols(features).setOutputCol("features")
     val featureDf = assembler.transform(featureDF)
     featureDf.show(10)
 
     // scaling
     log("Scaling features ...")
-    val scaler = new StandardScaler()
+    val minMaxScaler: MinMaxScaler = new MinMaxScaler()
       .setInputCol("features")
-      .setOutputCol("scaled_features")
-      .setWithMean(true)
-      .setWithMean(false)
+      .setOutputCol("normalized_features")
 
-    val scalerModel = scaler.fit(featureDf)
+    val scalerModel = minMaxScaler.fit(featureDf)
 
-    val scaledDF = scalerModel.transform(featureDf)
+    var scaledDF = scalerModel.transform(featureDf)
+
+    scaledDF = scaledDF.drop("features").withColumnRenamed("normalized_features", "features")
     log("Scaled DataFrame")
     scaledDF.show(10)
 
@@ -115,7 +117,7 @@ object SustainClustering {
     val pca: PCAModel = new PCA()
       .setInputCol("features")
       .setOutputCol("pcaFeatures")
-      .setK(features.length - 1)
+      .setK(features.length)
       .fit(scaledDF)
 
     val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, .95)
@@ -128,6 +130,9 @@ object SustainClustering {
     pcaDF = disassembler.transform(pcaDF)
 
     pcaDF.show(20)
+
+
+    // KMeans Clustering
   }
 
   def log(message: String) {
