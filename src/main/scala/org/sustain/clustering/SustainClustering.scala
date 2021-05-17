@@ -1,23 +1,22 @@
 package org.sustain.clustering
 
 import com.mongodb.spark.MongoSpark
-import org.apache.spark.ml.feature.{Normalizer, StandardScaler, VectorAssembler}
-import org.apache.spark.mllib.linalg.distributed.RowMatrix
+import org.apache.spark.ml.feature._
+import org.apache.spark.sql.{Dataset, Row}
 
 import java.io._
 import java.time.LocalDateTime
-
 
 object SustainClustering {
   val logFile: String = System.getenv("HOME") + "/sustain-clustering.log"
   val pw: PrintWriter = new PrintWriter(new FileWriter(new File(logFile), true))
 
   def logEnv(): Unit = {
-    println(">>> Log Environment")
-    println("SERVER_HOST: " + Constants.SERVER_HOST)
-    println("SERVER_PORT: " + Constants.SERVER_PORT)
-    println("DB_HOST: " + Constants.DB_HOST)
-    println("DB_PORT: " + Constants.DB_PORT)
+    log(">>> Log Environment")
+    log("SERVER_HOST: " + Constants.SERVER_HOST)
+    log("SERVER_PORT: " + Constants.SERVER_PORT)
+    log("DB_HOST: " + Constants.DB_HOST)
+    log("DB_PORT: " + Constants.DB_PORT)
   }
 
   def main(args: Array[String]): Unit = {
@@ -46,10 +45,11 @@ object SustainClustering {
     import com.mongodb.spark.config._
 
     // fetch data
-    var county_stats = MongoSpark.load(spark,
+    var featureDF = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> "svi_county_GISJOIN", "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
     var features = Array(
+      "GISJOIN",
       "E_HU",
       "M_HU",
       "E_HH",
@@ -86,21 +86,20 @@ object SustainClustering {
       "M_GROUPQ"
     )
 
-
-    county_stats = county_stats.select(features.head, features.tail: _*);
-    county_stats.printSchema()
-    county_stats.take(5).foreach(i => log(i.toString()))
+    featureDF = featureDF.select(features.head, features.tail: _*);
+    featureDF.printSchema()
+    featureDF.take(5).foreach(i => log(i.toString()))
 
     // normalize data columns
     val normalizer = new Normalizer().setInputCol("features")
 
     val assembler = new VectorAssembler().setInputCols(features.patch(0, Nil, 1)).setOutputCol("features")
-    val featureDf = assembler.transform(county_stats)
+    val featureDf = assembler.transform(featureDF)
     featureDf.show(10)
 
     // scaling
     log("Scaling features ...")
-    var scaler = new StandardScaler()
+    val scaler = new StandardScaler()
       .setInputCol("features")
       .setOutputCol("scaled_features")
       .setWithMean(true)
@@ -111,6 +110,24 @@ object SustainClustering {
     val scaledDF = scalerModel.transform(featureDf)
     log("Scaled DataFrame")
     scaledDF.show(10)
+
+    // PCA
+    val pca: PCAModel = new PCA()
+      .setInputCol("features")
+      .setOutputCol("pcaFeatures")
+      .setK(features.length - 1)
+      .fit(scaledDF)
+
+    val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, .95)
+    log("Collection " + collection1 + ", Required no. of PCs for 95% variability: " + requiredNoOfPCs)
+
+    var pcaDF: Dataset[Row] = pca.transform(scaledDF).select("GISJOIN", "features", "pcaFeatures")
+    pcaDF.show(20)
+
+    val disassembler = new VectorDisassembler().setInputCol("pcaFeatures")
+    pcaDF = disassembler.transform(pcaDF)
+
+    pcaDF.show(20)
   }
 
   def log(message: String) {
