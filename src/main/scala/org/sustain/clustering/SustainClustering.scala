@@ -32,11 +32,11 @@ object SustainClustering {
     import org.apache.spark.sql.SparkSession
     println("Starting ...")
 
-    val collection1 = "noaa_nam"
+    val collection1 = "noaa_nam_2"
 
     val spark = SparkSession.builder()
       .master(Constants.SPARK_MASTER)
-      .appName("SparkClustering")
+      .appName(s"Clustering ('$collection1')")
       .config("spark.mongodb.input.uri",
         "mongodb://" + Constants.DB_HOST + ":" + Constants.DB_PORT + "/sustaindb." + collection1)
       .getOrCreate()
@@ -49,7 +49,7 @@ object SustainClustering {
     var featureDF = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> collection1, "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
-    featureDF = featureDF.sample(0.5)
+//    featureDF = featureDF.sample(0.5)
     var features = Features.noaaFeatures
 
     val featuresWithGisJoin: ArrayBuffer[String] = ArrayBuffer(features: _*)

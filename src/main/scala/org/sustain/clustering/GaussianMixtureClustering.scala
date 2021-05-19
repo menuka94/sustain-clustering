@@ -29,6 +29,6 @@ object GaussianMixtureClustering {
 
     val evaluator = new ClusteringEvaluator()
     val silhouette = evaluator.evaluate(predictDF)
-    SustainClustering.log(s"GaussianMixture: Silhouette (collection = '$collectionName', k = $clusteringK, #PC=$noOfPCs): $silhouette")
+    SustainClustering.log(s"GaussianMixture: Silhouette (collection = '$collectionName', k = $clusteringK, #PC = $noOfPCs): $silhouette")
   }
 }
