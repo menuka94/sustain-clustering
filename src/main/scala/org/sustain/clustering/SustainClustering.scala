@@ -83,7 +83,7 @@ object SustainClustering {
     val pca: PCAModel = new PCA()
       .setInputCol("features")
       .setOutputCol("pcaFeatures")
-      .setK(13)
+      .setK(18)
       .fit(scaledDF)
 
     val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, .95)
@@ -98,7 +98,7 @@ object SustainClustering {
     pcaDF.show(20)
 
     // average principal components
-    pcaDF = pcaDF.groupBy(col(Constants.GIS_JOIN)).agg(
+    val pcaDF_all = pcaDF.groupBy(col(Constants.GIS_JOIN)).agg(
       avg("pcaFeatures_0").as("avg_pc_0"),
       avg("pcaFeatures_1").as("avg_pc_1"),
       avg("pcaFeatures_2").as("avg_pc_2"),
@@ -112,66 +112,44 @@ object SustainClustering {
       avg("pcaFeatures_10").as("avg_pc_10"),
       avg("pcaFeatures_11").as("avg_pc_11"),
       avg("pcaFeatures_12").as("avg_pc_12"),
-    ).
-      select(Constants.GIS_JOIN,
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
-      )
+      avg("pcaFeatures_13").as("avg_pc_13"),
+      avg("pcaFeatures_14").as("avg_pc_14"),
+      avg("pcaFeatures_15").as("avg_pc_15"),
+      avg("pcaFeatures_16").as("avg_pc_16"),
+      avg("pcaFeatures_17").as("avg_pc_17")
+    )
 
     val count = pcaDF.count()
     log(s"pcaDF: count = $count")
 
-    // KMeans Clustering
+
+    // Clustering: 13 PCs
+    val pcaDF13 = pcaDF_all.select(Constants.GIS_JOIN,
+      "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7",
+      "avg_pc_8", "avg_pc_9", "avg_pc_10", "avg_pc_11", "avg_pc_12"
+    )
+
     KMeansClustering.runClustering(spark,
       pcaDF,
       Array(
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8",
+        "avg_pc_9", "avg_pc_10", "avg_pc_11", "avg_pc_12"
       ),
       56,
       13,
       collection1
     )
 
-    // BisectingKMeans Clustering
-    BisectingKMeansClustering.runClustering(spark,
+    // Clustering: 9 PCs
+    val pcaDF9 = pcaDF_all.select(Constants.GIS_JOIN,
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8"
+      )
+
+    KMeansClustering.runClustering(spark,
       pcaDF,
       Array(
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8",
+        "avg_pc_9", "avg_pc_10", "avg_pc_11", "avg_pc_12"
       ),
       56,
       13,
@@ -179,28 +157,34 @@ object SustainClustering {
     )
 
 
-    // GaussianMixture Clustering
-    GaussianMixtureClustering.runClustering(spark,
-      pcaDF,
-      Array(
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
-      ),
-      56,
-      13,
-      collection1
+    // Clustering: 8 PCs
+    val pcaDF8 = pcaDF_all.select(Constants.GIS_JOIN,
+      "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7",
     )
+
+    // Clustering: 7 PCs
+    val pcaDF7 = pcaDF_all.select(Constants.GIS_JOIN,
+      "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6"
+    )
+
+
+    // Clustering: 6 PCs
+    val pcaDF6 = pcaDF_all.select(Constants.GIS_JOIN,
+      "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5"
+    )
+
+
+    // Clustering: 5 PCs
+    val pcaDF5 = pcaDF_all.select(Constants.GIS_JOIN,
+      "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4"
+    )
+
+
+    // Clustering: 4 PCs
+    val pcaDF4 = pcaDF_all.select(Constants.GIS_JOIN,
+      "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3"
+    )
+
   }
 
   def log(message: String) {
