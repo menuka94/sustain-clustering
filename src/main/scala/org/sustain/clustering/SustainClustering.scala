@@ -36,7 +36,7 @@ object SustainClustering {
 
     val spark = SparkSession.builder()
       .master(Constants.SPARK_MASTER)
-      .appName(s"Clustering ('$collection1')")
+      .appName(s"Clustering ('$collection1'): Varying #clusters")
       .config("spark.mongodb.input.uri",
         "mongodb://" + Constants.DB_HOST + ":" + Constants.DB_PORT + "/sustaindb." + collection1)
       .getOrCreate()
@@ -49,7 +49,7 @@ object SustainClustering {
     var featureDF = MongoSpark.load(spark,
       ReadConfig(Map("collection" -> collection1, "readPreference.name" -> "secondaryPreferred"), Some(ReadConfig(sc))))
 
-//    featureDF = featureDF.sample(0.5)
+    //    featureDF = featureDF.sample(0.5)
     var features = Features.noaaFeatures
 
     val featuresWithGisJoin: ArrayBuffer[String] = ArrayBuffer(features: _*)
@@ -132,7 +132,9 @@ object SustainClustering {
     val count = pcaDF.count()
     log(s"pcaDF: count = $count")
 
-    // KMeans Clustering
+    // val kValues = Array(72, 68, 64, 60, 56, 52, 48, 44, 40, 36)
+    val kValues = Array(92, 88, 84, 80, 76, 32, 28, 24, 20, 16)
+
     KMeansClustering.runClustering(spark,
       pcaDF,
       Array(
@@ -150,54 +152,7 @@ object SustainClustering {
         "avg_pc_11",
         "avg_pc_12"
       ),
-      56,
-      13,
-      collection1
-    )
-
-    // BisectingKMeans Clustering
-    BisectingKMeansClustering.runClustering(spark,
-      pcaDF,
-      Array(
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
-      ),
-      56,
-      13,
-      collection1
-    )
-
-
-    // GaussianMixture Clustering
-    GaussianMixtureClustering.runClustering(spark,
-      pcaDF,
-      Array(
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
-      ),
-      56,
+      kValues,
       13,
       collection1
     )
