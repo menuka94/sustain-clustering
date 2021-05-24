@@ -36,7 +36,7 @@ object SustainClustering {
 
     val spark = SparkSession.builder()
       .master(Constants.SPARK_MASTER)
-      .appName(s"Clustering ('$collection1')")
+      .appName(s"Clustering ('$collection1') - Silhouette Scores")
       .config("spark.mongodb.input.uri",
         "mongodb://" + Constants.DB_HOST + ":" + Constants.DB_PORT + "/sustaindb." + collection1)
       .getOrCreate()
@@ -130,7 +130,29 @@ object SustainClustering {
     )
 
     KMeansClustering.runClustering(spark,
-      pcaDF,
+      pcaDF13,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8",
+        "avg_pc_9", "avg_pc_10", "avg_pc_11", "avg_pc_12"
+      ),
+      56,
+      13,
+      collection1
+    )
+
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF13,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8",
+        "avg_pc_9", "avg_pc_10", "avg_pc_11", "avg_pc_12"
+      ),
+      56,
+      13,
+      collection1
+    )
+
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF13,
       Array(
         "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8",
         "avg_pc_9", "avg_pc_10", "avg_pc_11", "avg_pc_12"
@@ -146,13 +168,32 @@ object SustainClustering {
       )
 
     KMeansClustering.runClustering(spark,
-      pcaDF,
+      pcaDF9,
       Array(
-        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8",
-        "avg_pc_9", "avg_pc_10", "avg_pc_11", "avg_pc_12"
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8"
       ),
       56,
-      13,
+      9,
+      collection1
+    )
+
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF9,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8"
+      ),
+      56,
+      9,
+      collection1
+    )
+
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF9,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7", "avg_pc_8"
+      ),
+      56,
+      9,
       collection1
     )
 
@@ -162,9 +203,69 @@ object SustainClustering {
       "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7",
     )
 
+    KMeansClustering.runClustering(spark,
+      pcaDF8,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7"
+      ),
+      56,
+      8,
+      collection1
+    )
+
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF8,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7"
+      ),
+      56,
+      8,
+      collection1
+    )
+
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF8,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6", "avg_pc_7"
+      ),
+      56,
+      8,
+      collection1
+    )
+
     // Clustering: 7 PCs
     val pcaDF7 = pcaDF_all.select(Constants.GIS_JOIN,
       "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6"
+    )
+
+    KMeansClustering.runClustering(spark,
+      pcaDF7,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6"
+      ),
+      56,
+      7,
+      collection1
+    )
+
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF7,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6"
+      ),
+      56,
+      7,
+      collection1
+    )
+
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF7,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5", "avg_pc_6"
+      ),
+      56,
+      7,
+      collection1
     )
 
 
@@ -173,10 +274,70 @@ object SustainClustering {
       "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5"
     )
 
+    KMeansClustering.runClustering(spark,
+      pcaDF6,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5"
+      ),
+      56,
+      6,
+      collection1
+    )
+
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF6,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5"
+      ),
+      56,
+      6,
+      collection1
+    )
+
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF6,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4", "avg_pc_5"
+      ),
+      56,
+      6,
+      collection1
+    )
+
 
     // Clustering: 5 PCs
     val pcaDF5 = pcaDF_all.select(Constants.GIS_JOIN,
       "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4"
+    )
+
+    KMeansClustering.runClustering(spark,
+      pcaDF5,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4"
+      ),
+      56,
+      5,
+      collection1
+    )
+
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF5,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4"
+      ),
+      56,
+      5,
+      collection1
+    )
+
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF5,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3", "avg_pc_4"
+      ),
+      56,
+      5,
+      collection1
     )
 
 
@@ -185,6 +346,35 @@ object SustainClustering {
       "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3"
     )
 
+    KMeansClustering.runClustering(spark,
+      pcaDF4,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3"
+      ),
+      56,
+      4,
+      collection1
+    )
+
+    BisectingKMeansClustering.runClustering(spark,
+      pcaDF4,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3"
+      ),
+      56,
+      4,
+      collection1
+    )
+
+    GaussianMixtureClustering.runClustering(spark,
+      pcaDF4,
+      Array(
+        "avg_pc_0", "avg_pc_1", "avg_pc_2", "avg_pc_3"
+      ),
+      56,
+      4,
+      collection1
+    )
   }
 
   def log(message: String) {
