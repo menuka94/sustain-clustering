@@ -9,8 +9,7 @@ object KMeansClustering {
   def runClustering(spark: SparkSession,
                     inputCollection: Dataset[Row],
                     clusteringFeatures: Array[String],
-                    kValues: Array[Int],
-                    noOfPCs: Int,
+                    k: Int,
                     collectionName: String): Unit = {
     import spark.implicits._
 
@@ -22,15 +21,13 @@ object KMeansClustering {
 
     val featureDF: Dataset[Row] = assembler.transform(clusteringCollection).select(Constants.GIS_JOIN, "features")
 
-    for (k <- kValues) {
-      val kMeans = new KMeans().setK(k).setSeed(1L)
-      val kMeansModel: KMeansModel = kMeans.fit(featureDF)
+    val kMeans = new KMeans().setK(k).setSeed(1L)
+    val kMeansModel: KMeansModel = kMeans.fit(featureDF)
 
-      val predictDF: Dataset[Row] = kMeansModel.transform(featureDF).select(Constants.GIS_JOIN, "features", "prediction")
+    val predictDF: Dataset[Row] = kMeansModel.transform(featureDF).select(Constants.GIS_JOIN, "features", "prediction")
 
-      val evaluator = new ClusteringEvaluator()
-      val silhouette = evaluator.evaluate(predictDF)
-      SustainClustering.log(s"KMeans (collection = '$collectionName', #clusters = $k, #PCs = $noOfPCs): Silhouette = $silhouette")
-    }
+    val evaluator = new ClusteringEvaluator()
+    val silhouette = evaluator.evaluate(predictDF)
+    SustainClustering.log(s"KMeans (collection = '$collectionName', #clusters = $k): Silhouette = $silhouette")
   }
 }

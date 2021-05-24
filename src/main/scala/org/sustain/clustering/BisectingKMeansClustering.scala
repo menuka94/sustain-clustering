@@ -9,8 +9,7 @@ object BisectingKMeansClustering {
   def runClustering(spark: SparkSession,
                     inputCollection: Dataset[Row],
                     clusteringFeatures: Array[String],
-                    clusteringK: Int,
-                    noOfPCs: Int,
+                    k: Int,
                     collectionName: String): Unit = {
     import spark.implicits._
 
@@ -22,13 +21,13 @@ object BisectingKMeansClustering {
 
     val featureDF: Dataset[Row] = assembler.transform(clusteringCollection).select(Constants.GIS_JOIN, "features")
 
-    val bkm = new BisectingKMeans().setK(clusteringK).setSeed(1L)
+    val bkm = new BisectingKMeans().setK(k).setSeed(1L)
     val model = bkm.fit(featureDF)
 
     val predictDF: Dataset[Row] = model.transform(featureDF).select(Constants.GIS_JOIN, "features", "prediction")
 
     val evaluator = new ClusteringEvaluator()
     val silhouette = evaluator.evaluate(predictDF)
-    SustainClustering.log(s"BisectingKMeans: Silhouette (collection = '$collectionName', k = $clusteringK, #PCs = $noOfPCs): $silhouette")
+    SustainClustering.log(s"BisectingKMeans: Silhouette (collection = '$collectionName', k = $k): $silhouette")
   }
 }

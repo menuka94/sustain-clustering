@@ -9,8 +9,7 @@ object GaussianMixtureClustering {
   def runClustering(spark: SparkSession,
                     inputCollection: Dataset[Row],
                     clusteringFeatures: Array[String],
-                    clusteringK: Int,
-                    noOfPCs: Int,
+                    k: Int,
                     collectionName: String): Unit = {
     import spark.implicits._
 
@@ -22,13 +21,13 @@ object GaussianMixtureClustering {
 
     val featureDF: Dataset[Row] = assembler.transform(clusteringCollection).select(Constants.GIS_JOIN, "features")
 
-    val gmm = new GaussianMixture().setK(clusteringK).setSeed(1L)
+    val gmm = new GaussianMixture().setK(k).setSeed(1L)
     val model = gmm.fit(featureDF)
 
     val predictDF: Dataset[Row] = model.transform(featureDF).select(Constants.GIS_JOIN, "features", "prediction")
 
     val evaluator = new ClusteringEvaluator()
     val silhouette = evaluator.evaluate(predictDF)
-    SustainClustering.log(s"GaussianMixture: Silhouette (collection = '$collectionName', k = $clusteringK, #PC = $noOfPCs): $silhouette")
+    SustainClustering.log(s"GaussianMixture: Silhouette (collection = '$collectionName', k = $k): $silhouette")
   }
 }

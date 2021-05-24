@@ -36,7 +36,7 @@ object SustainClustering {
 
     val spark = SparkSession.builder()
       .master(Constants.SPARK_MASTER)
-      .appName(s"Clustering ('$collection1'): Varying #clusters")
+      .appName(s"Clustering ('$collection1'): with original features")
       .config("spark.mongodb.input.uri",
         "mongodb://" + Constants.DB_HOST + ":" + Constants.DB_PORT + "/sustaindb." + collection1)
       .getOrCreate()
@@ -76,86 +76,56 @@ object SustainClustering {
     var scaledDF = scalerModel.transform(featureDf)
 
     scaledDF = scaledDF.drop("features").withColumnRenamed("normalized_features", "features")
+    scaledDF = scaledDF.groupBy("gis_join").agg(
+      avg("year_month_day_hour").as("avg_year_month_day_hour"),
+      avg("mean_sea_level_pressure_pascal").as("avg_mean_sea_level_pressure_pascal"),
+      avg("surface_pressure_surface_level_pascal").as("avg_surface_pressure_surface_level_pascal"),
+      avg("orography_surface_level_meters").as("avg_orography_surface_level_meters"),
+      avg("temp_surface_level_kelvin").as("avg_temp_surface_level_kelvin"),
+      avg("2_metre_temp_kelvin").as("avg_2_metre_temp_kelvin"),
+      avg("2_metre_dewpoint_temp_kelvin").as("avg_2_metre_dewpoint_temp_kelvin"),
+      avg("relative_humidity_percent").as("avg_relative_humidity_percent"),
+      avg("10_metre_u_wind_component_meters_per_second").as("avg_10_metre_u_wind_component_meters_per_second"),
+      avg("10_metre_v_wind_component_meters_per_second").as("avg_10_metre_v_wind_component_meters_per_second"),
+      avg("total_precipitation_kg_per_squared_meter").as("avg_total_precipitation_kg_per_squared_meter"),
+      avg("water_convection_precipitation_kg_per_squared_meter").as("avg_water_convection_precipitation_kg_per_squared_meter"),
+      avg("soil_temperature_kelvin").as("avg_soil_temperature_kelvin"),
+      avg("pressure_pascal").as("avg_pressure_pascal"),
+      avg("visibility_meters").as("avg_visibility_meters"),
+      avg("precipitable_water_kg_per_squared_meter").as("avg_precipitable_water_kg_per_squared_meter"),
+      avg("total_cloud_cover_percent").as("avg_total_cloud_cover_percent"),
+      avg("snow_depth_meters").as("avg_snow_depth_meters"),
+      avg("ice_cover_binary").as("avg_ice_cover_binary")
+    )
+
     log("Scaled DataFrame")
     scaledDF.show(10)
 
-    // PCA
-    val pca: PCAModel = new PCA()
-      .setInputCol("features")
-      .setOutputCol("pcaFeatures")
-      .setK(13)
-      .fit(scaledDF)
-
-    val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, .95)
-    log("Collection " + collection1 + ", Required no. of PCs for 95% variability: " + requiredNoOfPCs)
-
-    var pcaDF: Dataset[Row] = pca.transform(scaledDF).select(Constants.GIS_JOIN, "features", "pcaFeatures")
-    pcaDF.show(20)
-
-    val disassembler = new VectorDisassembler().setInputCol("pcaFeatures")
-    pcaDF = disassembler.transform(pcaDF)
-
-    pcaDF.show(20)
-
-    // average principal components
-    pcaDF = pcaDF.groupBy(col(Constants.GIS_JOIN)).agg(
-      avg("pcaFeatures_0").as("avg_pc_0"),
-      avg("pcaFeatures_1").as("avg_pc_1"),
-      avg("pcaFeatures_2").as("avg_pc_2"),
-      avg("pcaFeatures_3").as("avg_pc_3"),
-      avg("pcaFeatures_4").as("avg_pc_4"),
-      avg("pcaFeatures_5").as("avg_pc_5"),
-      avg("pcaFeatures_6").as("avg_pc_6"),
-      avg("pcaFeatures_7").as("avg_pc_7"),
-      avg("pcaFeatures_8").as("avg_pc_8"),
-      avg("pcaFeatures_9").as("avg_pc_9"),
-      avg("pcaFeatures_10").as("avg_pc_10"),
-      avg("pcaFeatures_11").as("avg_pc_11"),
-      avg("pcaFeatures_12").as("avg_pc_12"),
-    ).
-      select(Constants.GIS_JOIN,
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
-      )
-
-    val count = pcaDF.count()
-    log(s"pcaDF: count = $count")
-
-    // val kValues = Array(72, 68, 64, 60, 56, 52, 48, 44, 40, 36)
-    val kValues = Array(92, 88, 84, 80, 76, 32, 28, 24, 20, 16)
-
-    KMeansClustering.runClustering(spark,
-      pcaDF,
-      Array(
-        "avg_pc_0",
-        "avg_pc_1",
-        "avg_pc_2",
-        "avg_pc_3",
-        "avg_pc_4",
-        "avg_pc_5",
-        "avg_pc_6",
-        "avg_pc_7",
-        "avg_pc_8",
-        "avg_pc_9",
-        "avg_pc_10",
-        "avg_pc_11",
-        "avg_pc_12"
-      ),
-      kValues,
-      13,
-      collection1
+    features = Array(
+      "avg_year_month_day_hour",
+      "avg_mean_sea_level_pressure_pascal",
+      "avg_surface_pressure_surface_level_pascal",
+      "avg_orography_surface_level_meters",
+      "avg_temp_surface_level_kelvin",
+      "avg_2_metre_temp_kelvin",
+      "avg_2_metre_dewpoint_temp_kelvin",
+      "avg_relative_humidity_percent",
+      "avg_10_metre_u_wind_component_meters_per_second",
+      "avg_10_metre_v_wind_component_meters_per_second",
+      "avg_total_precipitation_kg_per_squared_meter",
+      "avg_water_convection_precipitation_kg_per_squared_meter",
+      "avg_soil_temperature_kelvin",
+      "avg_pressure_pascal",
+      "avg_visibility_meters",
+      "avg_precipitable_water_kg_per_squared_meter",
+      "avg_total_cloud_cover_percent",
+      "avg_snow_depth_meters",
+      "avg_ice_cover_binary"
     )
+
+    KMeansClustering.runClustering(spark, scaledDF, features, 56, collection1)
+    BisectingKMeansClustering.runClustering(spark, scaledDF, features, 56, collection1)
+    GaussianMixtureClustering.runClustering(spark, scaledDF, features, 56, collection1)
   }
 
   def log(message: String) {
