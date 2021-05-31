@@ -5,7 +5,7 @@
 
 .PHONY: build
 build:
-	sbt assembly;
+	sbt clean assembly;
 
 run:
 	spark-submit --class org.sustain.clustering.SustainClustering  \
