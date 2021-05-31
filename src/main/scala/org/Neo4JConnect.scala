@@ -21,7 +21,7 @@ object Neo4JConnect {
     val df = spark.read.format("org.neo4j.spark.DataSource")
       .option("url", "bolt://localhost:7687")
       .option("authentication.basic.username", "neo4j")
-      .option("authentication.basic.password", "neo4j")
+      .option("authentication.basic.password", "admin")
       .option("labels", "Person")
       .load()
 
