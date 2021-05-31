@@ -16,8 +16,12 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % "3.0.1",
   "org.apache.commons" % "commons-math3" % "3.2",
   "com.github.scopt" %% "scopt" % "3.7.0",
-  "org.apache.spark" %% "spark-mllib" % "3.0.1" % "provided"
+  "org.apache.spark" %% "spark-mllib" % "3.0.1" % "provided",
 )
+
+// https://mvnrepository.com/artifact/org.neo4j/neo4j
+//libraryDependencies += "org.neo4j" % "neo4j" % "4.0.5"
+
 
 //libraryDependencies += "log4j" % "log4j" % "1.2.14"
 libraryDependencies ++= Seq(

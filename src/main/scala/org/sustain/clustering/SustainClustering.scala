@@ -101,31 +101,42 @@ object SustainClustering {
     log("Scaled DataFrame")
     scaledDF.show(10)
 
-    features = Array(
-      "avg_year_month_day_hour",
-      "avg_mean_sea_level_pressure_pascal",
-      "avg_surface_pressure_surface_level_pascal",
-      "avg_orography_surface_level_meters",
-      "avg_temp_surface_level_kelvin",
-      "avg_2_metre_temp_kelvin",
-      "avg_2_metre_dewpoint_temp_kelvin",
-      "avg_relative_humidity_percent",
-      "avg_10_metre_u_wind_component_meters_per_second",
-      "avg_10_metre_v_wind_component_meters_per_second",
-      "avg_total_precipitation_kg_per_squared_meter",
-      "avg_water_convection_precipitation_kg_per_squared_meter",
-      "avg_soil_temperature_kelvin",
-      "avg_pressure_pascal",
-      "avg_visibility_meters",
-      "avg_precipitable_water_kg_per_squared_meter",
-      "avg_total_cloud_cover_percent",
-      "avg_snow_depth_meters",
-      "avg_ice_cover_binary"
-    )
+    var fileName = System.getenv("HOME") + "/noaa_nam_avg"
+    log(s"fileName: $fileName")
+//    scaledDF.coalesce(1)
+//      .write
+//      .format("csv")
+//      .option("header", "true")
+//      .option("sep", ",")
+//      .mode("overwrite")
+//      .csv(fileName)
+    scaledDF.coalesce(1).write.format("com.databricks.spark.csv").save(fileName)
 
-    KMeansClustering.runClustering(spark, scaledDF, features, 56, collection1)
-    BisectingKMeansClustering.runClustering(spark, scaledDF, features, 56, collection1)
-    GaussianMixtureClustering.runClustering(spark, scaledDF, features, 56, collection1)
+//    features = Array(
+//      "avg_year_month_day_hour",
+//      "avg_mean_sea_level_pressure_pascal",
+//      "avg_surface_pressure_surface_level_pascal",
+//      "avg_orography_surface_level_meters",
+//      "avg_temp_surface_level_kelvin",
+//      "avg_2_metre_temp_kelvin",
+//      "avg_2_metre_dewpoint_temp_kelvin",
+//      "avg_relative_humidity_percent",
+//      "avg_10_metre_u_wind_component_meters_per_second",
+//      "avg_10_metre_v_wind_component_meters_per_second",
+//      "avg_total_precipitation_kg_per_squared_meter",
+//      "avg_water_convection_precipitation_kg_per_squared_meter",
+//      "avg_soil_temperature_kelvin",
+//      "avg_pressure_pascal",
+//      "avg_visibility_meters",
+//      "avg_precipitable_water_kg_per_squared_meter",
+//      "avg_total_cloud_cover_percent",
+//      "avg_snow_depth_meters",
+//      "avg_ice_cover_binary"
+//    )
+//
+//    KMeansClustering.runClustering(spark, scaledDF, features, 56, collection1)
+//    BisectingKMeansClustering.runClustering(spark, scaledDF, features, 56, collection1)
+//    GaussianMixtureClustering.runClustering(spark, scaledDF, features, 56, collection1)
   }
 
   def log(message: String) {
