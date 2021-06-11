@@ -39,6 +39,8 @@ object SustainClustering {
       .appName(s"Clustering ('$collection1'): Varying #clusters")
       .config("spark.mongodb.input.uri",
         "mongodb://" + Constants.DB_HOST + ":" + Constants.DB_PORT + "/sustaindb." + collection1)
+      .config("spark.kubernetes.container.image", "menuka94/spark-py:v3.0.1-j8")
+      .config("spark.executor.instances", Constants.SPARK_INITIAL_EXECUTORS)
       .getOrCreate()
 
     val sc = spark.sparkContext
