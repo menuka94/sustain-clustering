@@ -7,8 +7,8 @@ import com.mongodb.spark.MongoSpark
 import org.apache.spark.ml.feature._
 import org.apache.spark.sql.{Dataset, Row}
 import SparkManager.logEnv
-import org.sustain.clustering.PCAUtil
 import org.sustain.datasets.Features
+import org.sustain.pcaClustering.PCAUtil
 import org.sustain.util.Logger
 
 import scala.collection.mutable.ArrayBuffer

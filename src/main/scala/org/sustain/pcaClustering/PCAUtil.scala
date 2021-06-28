@@ -1,4 +1,4 @@
-package org.sustain.clustering
+package org.sustain.pcaClustering
 
 import org.apache.spark.ml.feature.PCAModel
 import org.apache.spark.ml.linalg.DenseVector
