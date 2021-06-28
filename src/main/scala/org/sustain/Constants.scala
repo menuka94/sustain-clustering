@@ -1,4 +1,4 @@
-package org.sustain.clustering
+package org.sustain
 
 object Constants {
   val DB_HOST: String = sys.env("DB_HOST")

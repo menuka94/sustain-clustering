@@ -1,23 +1,23 @@
-package org.sustain.clustering
+package org.sustain
 
 import org.apache.spark.sql.SparkSession
-import org.sustain.clustering.SustainClustering.log
+import org.sustain.util.Logger
 
 object SparkManager {
 
   def logEnv(): Unit = {
-    log(">>> Log Environment")
-    log("USE_KUBERNETES: " + Constants.USE_KUBERNETES)
+    Logger.log(">>> Log Environment")
+    Logger.log("USE_KUBERNETES: " + Constants.USE_KUBERNETES)
     if (Constants.USE_KUBERNETES) {
-      log("SPARK_MASTER: " + Constants.KUBERNETES_SPARK_MASTER)
+      Logger.log("SPARK_MASTER: " + Constants.KUBERNETES_SPARK_MASTER)
     } else {
-      log("SPARK_MASTER: " + Constants.SPARK_MASTER)
+      Logger.log("SPARK_MASTER: " + Constants.SPARK_MASTER)
     }
-    log("DB_HOST: " + Constants.DB_HOST)
-    log("DB_PORT: " + Constants.DB_PORT)
+    Logger.log("DB_HOST: " + Constants.DB_HOST)
+    Logger.log("DB_PORT: " + Constants.DB_PORT)
   }
 
-  def getSparkSession (collection1: String): SparkSession = {
+  def getSparkSession(collection1: String): SparkSession = {
     if (Constants.USE_KUBERNETES) {
       SparkSession.builder()
         .master(Constants.KUBERNETES_SPARK_MASTER)

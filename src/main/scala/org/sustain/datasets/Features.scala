@@ -1,4 +1,4 @@
-package org.sustain.clustering
+package org.sustain.datasets
 
 object Features {
   val sviFeatures: Array[String] = Array(

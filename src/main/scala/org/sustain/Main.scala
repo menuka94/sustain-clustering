@@ -1,30 +1,29 @@
-package org.sustain.clustering
+package org.sustain
+
+import java.io.{File, FileWriter, PrintWriter}
+import java.time.LocalDateTime
 
 import com.mongodb.spark.MongoSpark
 import org.apache.spark.ml.feature._
-import org.apache.spark.sql.functions.{avg, col}
 import org.apache.spark.sql.{Dataset, Row}
-import java.io._
-import java.time.LocalDateTime
-
-import org.sustain.clustering.SparkManager.logEnv
+import SparkManager.logEnv
+import org.sustain.clustering.PCAUtil
+import org.sustain.datasets.Features
+import org.sustain.util.Logger
 
 import scala.collection.mutable.ArrayBuffer
 
-object SustainClustering {
-  val logFile: String = System.getenv("HOME") + "/sustain-clustering.log"
-  val pw: PrintWriter = new PrintWriter(new FileWriter(new File(logFile), true))
+object Main {
 
   def main(args: Array[String]): Unit = {
     logEnv()
     System.setProperty("mongodb.keep_alive_ms", "100000")
     // add new line to log file to indicate new invocation of the method
-    pw.write("-------------------------------------------------------------------------\n")
+   Logger.log("-------------------------------------------------------------------------\n")
     /* Create the SparkSession.
-         * If config arguments are passed from the command line using --conf,
+   cd  * If config arguments are passed from the command line using --conf,
          * parse args for the values to set.
          */
-    import org.apache.spark.sql.SparkSession
     println("Starting ...")
 
     val collection1 = "svi_county_GISJOIN"
@@ -46,7 +45,7 @@ object SustainClustering {
     featuresWithGisJoin += Constants.GIS_JOIN
     featureDF = featureDF.select(featuresWithGisJoin.head, featuresWithGisJoin.tail: _*);
     featureDF.printSchema()
-    featureDF.take(5).foreach(i => log(i.toString()))
+    featureDF.take(5).foreach(i => Logger.log(i.toString()))
 
     // normalize data columns
     val normalizer = new Normalizer().setInputCol("features")
@@ -58,7 +57,7 @@ object SustainClustering {
     featureDf.show(10)
 
     // scaling
-    log("Scaling features ...")
+    Logger.log("Scaling features ...")
     val minMaxScaler: MinMaxScaler = new MinMaxScaler()
       .setInputCol("features")
       .setOutputCol("normalized_features")
@@ -68,7 +67,7 @@ object SustainClustering {
     var scaledDF = scalerModel.transform(featureDf)
 
     scaledDF = scaledDF.drop("features").withColumnRenamed("normalized_features", "features")
-    log("Scaled DataFrame")
+    Logger.log("Scaled DataFrame")
     scaledDF.show(10)
 
     // PCA
@@ -79,18 +78,11 @@ object SustainClustering {
       .fit(scaledDF)
 
     val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, 0.95)
-    log("Collection " + collection1 + ", Required no. of PCs for 95% variability: " + requiredNoOfPCs)
+    Logger.log("Collection " + collection1 + ", Required no. of PCs for 95% variability: " + requiredNoOfPCs)
 
     var pcaDF: Dataset[Row] = pca.transform(scaledDF).select(Constants.GIS_JOIN, "features", "pcaFeatures")
     pcaDF.show(20)
 
-    log(s"Time taken: ${(System.currentTimeMillis() - time1)/1000} seconds")
-  }
-
-  def log(message: String) {
-    val log = LocalDateTime.now() + ": " + message
-    println(log)
-    pw.write(log + "\n")
-    pw.flush()
+    Logger.log(s"Time taken: ${(System.currentTimeMillis() - time1) / 1000} seconds")
   }
 }
