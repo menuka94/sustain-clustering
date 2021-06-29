@@ -7,6 +7,7 @@ import com.mongodb.spark.MongoSpark
 import org.apache.spark.ml.feature._
 import org.apache.spark.sql.{Dataset, Row}
 import SparkManager.logEnv
+import org.sustain.clustering.KMeansClustering
 import org.sustain.datasets.Features
 import org.sustain.pcaClustering.PCAUtil
 import org.sustain.util.Logger
@@ -69,19 +70,20 @@ object Main {
     scaledDF = scaledDF.drop("features").withColumnRenamed("normalized_features", "features")
     Logger.log("Scaled DataFrame")
     scaledDF.show(10)
+    KMeansClustering.runClustering(scaledDF, 56, features, collection1)
 
     // PCA
-    val pca: PCAModel = new PCA()
-      .setInputCol("features")
-      .setOutputCol("pcaFeatures")
-      .setK(13)
-      .fit(scaledDF)
-
-    val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, 0.95)
-    Logger.log("Collection " + collection1 + ", Required no. of PCs for 95% variability: " + requiredNoOfPCs)
-
-    var pcaDF: Dataset[Row] = pca.transform(scaledDF).select(Constants.GIS_JOIN, "features", "pcaFeatures")
-    pcaDF.show(20)
+//    val pca: PCAModel = new PCA()
+//      .setInputCol("features")
+//      .setOutputCol("pcaFeatures")
+//      .setK(13)
+//      .fit(scaledDF)
+//
+//    val requiredNoOfPCs = PCAUtil.getNoPrincipalComponentsByVariance(pca, 0.95)
+//    Logger.log("Collection " + collection1 + ", Required no. of PCs for 95% variability: " + requiredNoOfPCs)
+//
+//    var pcaDF: Dataset[Row] = pca.transform(scaledDF).select(Constants.GIS_JOIN, "features", "pcaFeatures")
+//    pcaDF.show(20)
 
     Logger.log(s"Time taken: ${(System.currentTimeMillis() - time1) / 1000} seconds")
   }

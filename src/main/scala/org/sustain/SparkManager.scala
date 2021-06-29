@@ -28,7 +28,7 @@ object SparkManager {
         .config("spark.kubernetes.container.image", Constants.SPARK_DOCKER_IMAGE)
         .config("spark.dynamicAllocation.enabled", "true")
         .config("spark.dynamicAllocation.shuffleTracking.enabled", "true")
-        .config("spark.executor.instances", Constants.SPARK_INITIAL_EXECUTORS)
+//        .config("spark.executor.instances", Constants.SPARK_INITIAL_EXECUTORS)
         .config("spark.dynamicAllocation.minExecutors", Constants.SPARK_INITIAL_EXECUTORS)
         .config("spark.dynamicAllocation.maxExecutors", Constants.SPARK_MAX_EXECUTORS)
         .config("spark.executor.memory", Constants.SPARK_EXECUTOR_MEMORY)
